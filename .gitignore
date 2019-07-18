@@ -35,7 +35,9 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-dist/
+dist/main-CiastekPC.js
+dist/main.js
+package-lock.json
 
 # TypeScript v1 declaration files
 typings/
