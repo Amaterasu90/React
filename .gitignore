@@ -37,6 +37,7 @@ node_modules/
 jspm_packages/
 dist/main-CiastekPC.js
 dist/main.js
+dist/*.png
 package-lock.json
 
 # TypeScript v1 declaration files

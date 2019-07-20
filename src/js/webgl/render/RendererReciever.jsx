@@ -4,10 +4,7 @@ class RendererReciever {
     }
 
     recieve() {
-        var result = this.worldObjectReciever.recieveByType("renderer")[0];
-        if (result) {
-            return result.object;
-        }
+        return this.worldObjectReciever.getRenderer();
     }
 }
 

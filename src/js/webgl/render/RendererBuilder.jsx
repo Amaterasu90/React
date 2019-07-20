@@ -10,6 +10,11 @@ class RendererBuilder {
         return this;
     }
 
+    setClearColor(color){
+        this.operationParts.push(() => { this.renderer.setClearColor(color) });
+        return this;
+    }
+
     build() {
         this.operationParts.forEach((operation) => {
             operation();

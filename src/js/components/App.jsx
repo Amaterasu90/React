@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import ThreeComponent from './ThreeComponent.jsx';
+import BoxesComponent from '../components/boxes/BoxesComponent.jsx';
+import WorldComponent from './world/WorldComponent.jsx';
 
 class App extends Component {
     render() {
-        return (<ThreeComponent width={500} heigth={500} />);
+        //return (<BoxesComponent width={500} height={500} />);
+        return (<WorldComponent width={500} height={500} />);
     }
 }
 

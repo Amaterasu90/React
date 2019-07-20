@@ -6,10 +6,10 @@ class RendererInitializer {
         this.renderReciever = renderReciever;
     }
 
-    initialize() {
+    initialize(htmlElementToHooked) {
         var renderer = this.renderReciever.recieve();
         if (!renderer) {
-            this.worldObjectManager.addObject({ name: "mainRenderer", object: new THREE.WebGLRenderer(), type: "renderer" });
+            this.worldObjectManager.setRenderer(new THREE.WebGLRenderer({canvas: htmlElementToHooked}));
         }
     }
 }

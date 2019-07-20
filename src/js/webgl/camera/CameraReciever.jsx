@@ -16,6 +16,13 @@ class CameraReciever {
             return result.object;
         }
     }
+
+    recieveFirst(){
+        var result = this.worldObjectReciever.recieveByType("camera")[0];
+        if (result) {
+            return result.object;
+        }
+    }
 }
 
 export default CameraReciever;

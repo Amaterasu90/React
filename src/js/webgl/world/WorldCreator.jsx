@@ -11,20 +11,13 @@ class WorldCreator {
     constructor(worldManager) {
         this.worldObjectManager = new WorldObjectManager(worldManager);
         this.worldObjectReciever = new WorldObjectReciever(worldManager);
-        this.cameraReciever = new CameraReciever(this.worldObjectReciever);
-        this.cameraCreator = new PerspectiveCameraCreator(this.worldObjectManager, this.cameraReciever);
-        this.renderReciever = new RendererReciever(this.worldObjectReciever);
-        this.rendererInitializer = new RendererInitializer(this.worldObjectManager, this.renderReciever);
         this.sceneReciever = new SceneReciever(this.worldObjectReciever);
         this.sceneInitializer = new SceneInitializer(this.worldObjectManager, this.sceneReciever);
     }
 
-    createDefault() {
+    createDefault(embederCallback) {
         this.sceneInitializer.initialize();
-        this.cameraCreator.create("camera1");
-        this.rendererInitializer.initialize();
-        var renderer = this.renderReciever.recieve();
-        renderer.setClearColor(0xffffff);
+        embederCallback();
     }
 }
 

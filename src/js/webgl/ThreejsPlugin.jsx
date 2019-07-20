@@ -1,13 +1,14 @@
-class ThreejsPlugin {
-    constructor(rendererReciever){
+class ThreejsWindowPlugin {
+    constructor(rendererInitializer, rendererReciever){
+        this.rendererInitializer = rendererInitializer;
         this.rendererReciever = rendererReciever;
     }
 
-    embed(mount, width, heigth) {
+    embed(htmlElementToHooked, width, heigth) {
+        this.rendererInitializer.initialize(htmlElementToHooked);
         var renderer = this.rendererReciever.recieve();
         renderer.setSize(width, heigth);
-        mount.appendChild(renderer.domElement);
     }
 }
 
-export default ThreejsPlugin;
+export default ThreejsWindowPlugin;

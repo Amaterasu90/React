@@ -17,6 +17,10 @@ class WorldObjectManager {
             this.worldManager.removeObject(object);
         }
     }
+
+    setRenderer(renderer){
+        this.worldManager.setRenderer(renderer);
+    }
 }
 
 export default WorldObjectManager;

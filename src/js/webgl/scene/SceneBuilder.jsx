@@ -1,11 +1,13 @@
 class SceneBuilder {
-    constructor(sceneManager, meshReciever, meshCreator, lightReciever, directionalLightCreator, cameraRetriever) {
+    constructor(sceneManager, meshReciever, meshCreator, perspectiveCameraCreator, lightReciever, directionalLightCreator, cameraRetriever, labeledMeshCreator) {
         this.sceneManager = sceneManager;
         this.meshReciever = meshReciever;
         this.meshCreator = meshCreator;
         this.lightReciever = lightReciever;
         this.directionalLightCreator = directionalLightCreator;
         this.cameraRetriever = cameraRetriever;
+        this.perspectiveCameraCreator = perspectiveCameraCreator;
+        this.labeledMeshCreator = labeledMeshCreator
         this.opeations = [];
     }
 
@@ -14,7 +16,29 @@ class SceneBuilder {
             this.meshCreator.create(name, geometry, material);
         });
 
-        return this;
+        return this.addObjectToScene(() => {            
+            return this.meshReciever.recieve(name);
+        });
+    }
+
+    addMeshWithLabel(name, geometry, material, containerElement) {
+        this.opeations.push(() => {
+            this.labeledMeshCreator.create(name, geometry, material, containerElement);
+        });
+
+        return this.addObjectToScene(() => {            
+            return this.meshReciever.recieve(name);
+        });
+    }
+
+    addPerspectiveCamera(name, fov, aspect, near, far){
+        this.opeations.push(()=>{
+            this.perspectiveCameraCreator.create(name, fov, aspect, near, far);
+        });
+
+        return this.addObjectToScene(()=>{
+            return this.cameraRetriever.recieve(name);
+        });
     }
 
     placeMesh(name, position) {
@@ -33,7 +57,9 @@ class SceneBuilder {
             this.directionalLightCreator.create(name, color, intesity);
         });
 
-        return this;
+        return this.addObjectToScene(() => {            
+            return this.lightReciever.recieve(name)
+        });;
     }
 
     placeLight(name, position) {
@@ -66,7 +92,9 @@ class SceneBuilder {
     }
 
     addObjectToScene(findCallback) {
+        
         this.opeations.push(() => {
+            
             this.sceneManager.addObject(findCallback);
         });
 

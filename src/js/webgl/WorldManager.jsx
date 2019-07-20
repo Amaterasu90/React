@@ -6,11 +6,12 @@ import SceneReciever from './scene/SceneReciever.jsx';
 import SceneInitializer from './scene/SceneInitializer.jsx';
 
 class WorldManager {
-    constructor(){
+    constructor() {
         this.ObjectRegister = [];
+        this.Renderer = null;
     }
 
-    initialize(){
+    initialize() {
         var worldObjectManager = new WorldObjectManager(this);
         var worldObjectReciever = new WorldObjectReciever(this);
         var sceneReciever = new SceneReciever(worldObjectReciever);
@@ -18,11 +19,21 @@ class WorldManager {
         sceneInitializer.initialize();
     }
 
-    getAllObjects(){
+    getRenderer() {
+        return this.Renderer;
+    }
+
+    setRenderer(renderer) {
+        if (!this.Renderer && renderer) {
+            this.Renderer = renderer;
+        }
+    }
+
+    getAllObjects() {
         return this.ObjectRegister;
     }
 
-    removeObject(object){
+    removeObject(object) {
         return this.ObjectRegister = this.ObjectRegister.filter(o => o.name === object);
     }
 }

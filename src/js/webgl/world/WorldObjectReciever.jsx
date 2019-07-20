@@ -33,6 +33,10 @@ class WorldObjectReciever {
             }
         }
     }
+
+    getRenderer(){
+        return this.worldManager.getRenderer();
+    }
 }
 
 export default WorldObjectReciever;

@@ -5,7 +5,7 @@ class RangeComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: this.props.startValue
+            value: parseFloat(this.props.value)
         };
     }
 
@@ -17,7 +17,7 @@ class RangeComponent extends Component {
     render() {
         return (
             <div className="slidecontainer">
-                <input type="range" min={this.props.min} max={this.props.max} step={this.props.step} className="slider" id="myRange" value={this.state.value} onChange={(event) => this.handleChange(event)} />
+                <input ref={this.input} type="range" min={this.props.min} max={this.props.max} step={this.props.step} className="slider" id="myRange" value={this.state.value} onChange={(event) => this.handleChange(event)} />
             </div>
         );
     }
