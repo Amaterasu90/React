@@ -55,6 +55,8 @@ class WorldComponent extends Component {
         this.cameraToPoint = new THREE.Vector3();
         this.cameraPosition = new THREE.Vector3();
         this.normalMatrix = new THREE.Matrix3();
+
+        this.matrix = new THREE.Matrix4()
         this.state = {
             settings: {
                 minArea: 10,
@@ -90,11 +92,9 @@ class WorldComponent extends Component {
             this.directionalLightCreator,
             this.cameraReciever,
             this.labeledMeshCreator)
-            .addMesh("world", new THREE.SphereBufferGeometry(1, 64, 32), new THREE.MeshLambertMaterial({ map: texture }))
+            .addMesh("world", new THREE.SphereBufferGeometry(1, 64, 32), new THREE.MeshBasicMaterial({ map: texture }))
             .addPerspectiveCamera("camera", 75, 2, 0.1, 5)
             .placeCamera("camera", { z: 2.5 })
-            .addDirectionalLight("light", 0xff0000, 100)
-            .placeLight("light", { x: -1, y: 2, z: 4 })
             .build();
 
         this.controls = new OrbitContols(this.cameraReciever.recieveFirst(), this.canvas);
@@ -150,14 +150,15 @@ class WorldComponent extends Component {
         }
     }
 
-    updateLabels() {
+    updateLabels(time) {
         if (!CountriesInfo) {
             return;
         }
 
         const large = this.state.settings.minArea * this.state.settings.minArea;
+
         var camera = this.cameraReciever.recieveFirst();
-        this.normalMatrix.getNormalMatrix(camera.matrixWorldInverse);        
+        this.normalMatrix.getNormalMatrix(camera.matrixWorldInverse);
         camera.getWorldPosition(this.cameraPosition);
 
         for (const countryInfo of CountriesInfo) {
@@ -203,10 +204,14 @@ class WorldComponent extends Component {
 
         this.controls.update();
 
-        this.updateLabels();
+        this.updateLabels(time);
 
         var camera = this.cameraReciever.recieveFirst();
-        var light = this.lightReciever.recieveByName("light");
+        var angle = 0.001;
+        var axis = new THREE.Vector3(0, 1, 0);
+        var quaternion = new THREE.Quaternion;
+        camera.position.applyQuaternion(quaternion.setFromAxisAngle(axis, angle));
+        camera.up.applyQuaternion(quaternion.setFromAxisAngle(axis, angle));
     }
 
     handleArea(event) {
