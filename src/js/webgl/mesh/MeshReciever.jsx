@@ -3,13 +3,6 @@ class MeshReciever {
         this.worldObjectReciever = worldObjectReciever;
     }
 
-    recieveByName(name){
-        var result = this.worldObjectReciever.recieveByName(name);
-        if (result) {
-            return result.object;
-        }
-    }
-
     recieve(name) {
         var result = this.worldObjectReciever.recieve(name, "mesh");
         if (result) {

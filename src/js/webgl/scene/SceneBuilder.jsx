@@ -91,11 +91,11 @@ class SceneBuilder {
         return this;
     }
 
-    addObjectToScene(findCallback) {
+    addObjectToScene(findCallback, name) {
         
         this.opeations.push(() => {
             
-            this.sceneManager.addObject(findCallback);
+            this.sceneManager.addObject(findCallback, name);
         });
 
         return this;

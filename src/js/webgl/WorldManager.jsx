@@ -1,10 +1,3 @@
-import RendererInitializer from './render/RendererInitializer.jsx';
-import WorldObjectManager from './world/WorldObjectManager.jsx';
-import WorldObjectReciever from './world/WorldObjectReciever.jsx';
-import RendererReciever from './render/RendererReciever.jsx';
-import SceneReciever from './scene/SceneReciever.jsx';
-import SceneInitializer from './scene/SceneInitializer.jsx';
-
 class WorldManager {
     constructor() {
         this.ObjectRegister = [];
@@ -12,11 +5,6 @@ class WorldManager {
     }
 
     initialize() {
-        var worldObjectManager = new WorldObjectManager(this);
-        var worldObjectReciever = new WorldObjectReciever(this);
-        var sceneReciever = new SceneReciever(worldObjectReciever);
-        var sceneInitializer = new SceneInitializer(worldObjectManager, sceneReciever);
-        sceneInitializer.initialize();
     }
 
     getRenderer() {

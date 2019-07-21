@@ -22,6 +22,7 @@ import LabeledMeshCreator from '../../webgl/mesh/LabeledMeshCreator.jsx';
 import MeshIntersector from '../../webgl/raycast/MeshIntersector.jsx';
 
 import CountryContoures from './country-outlines-4k.png';
+import CountryAreas from './country-index-texture.png';
 import CountriesInfo from '../../dataProcessing/CountriesInfo.jsx';
 
 import './style.css';
@@ -31,8 +32,9 @@ import ElementCreator from '../../html/ElementCreator.jsx';
 import ElementReciever from '../../html/ElementReciever.jsx';
 import ElementEmbedder from '../../html/ElementEmbedder.jsx';
 import SceneCreator from '../../webgl/scene/SceneCreator.jsx';
+import Picker from '../../webgl/utils/Picker.jsx';
 
-class WorldComponent extends Component {
+class CountryPickerComponent extends Component {
     constructor(props) {
         super(props);
         this.worldManager = new WorldManager();
@@ -46,7 +48,7 @@ class WorldComponent extends Component {
         this.directionalLightCreator = new DirectionalLightCreator(this.worldObjectManager, this.lightReciever);
         this.meshReciever = new MeshReciever(this.worldObjectReciever);
         this.meshCreator = new MeshCreator(this.worldObjectManager, this.meshReciever);
-        this.sceneCreator = new SceneCreator(this.worldObjectManager);
+        this.sceneCreator = new SceneCreator(this.worldObjectManager, this.sceneReciever);
         this.rendererInitializer = new RendererInitializer(this.worldObjectManager, this.rendererReciever);
         this.worldCreator = new WorldCreator(this.worldManager);
         this.plugin = new ThreejsWindowPlugin(this.rendererInitializer, this.rendererReciever);
@@ -56,6 +58,7 @@ class WorldComponent extends Component {
         this.tempV = new THREE.Vector3();
         this.meshIntersector = new MeshIntersector(this.cameraReciever);
 
+        this.pickHelper = new Picker(this.rendererReciever);
         this.renderRequested = false;
         this.tempV = new THREE.Vector3();
         this.cameraToPoint = new THREE.Vector3();
@@ -70,6 +73,9 @@ class WorldComponent extends Component {
                 maxVisibleDot: -0.2,
             }
         };
+
+        this.lastTouch = null;
+        this.numCountriesSelected = 0;
     }
 
     animationFrame(time) {
@@ -83,12 +89,19 @@ class WorldComponent extends Component {
             this.plugin.embed(this.canvas, parseInt(this.props.width), parseInt(this.props.width));
         });
 
+        this.sceneCreator.create("pickingScene");
+        var scene = this.sceneReciever.recieve("pickingScene");
+        scene.background = new THREE.Color(0);
+
         new RendererBuilder(this.rendererReciever)
             .setClearColor("#236")
             .setAnimationLoop((time) => { this.animationFrame(time) }).build();
 
         const loader = new THREE.TextureLoader();
         const countryContoures = loader.load(CountryContoures);
+        const countryAreas = loader.load(CountryAreas);
+        countryAreas.minFilter = THREE.NearestFilter;
+        countryAreas.magFilter = THREE.NearestFilter;
 
         new SceneBuilder(
             this.sceneManager,
@@ -100,6 +113,7 @@ class WorldComponent extends Component {
             this.cameraReciever,
             this.labeledMeshCreator)
             .addMesh("contoures", new THREE.SphereBufferGeometry(1, 64, 32), new THREE.MeshBasicMaterial({ color: 0x00ff00, map: countryContoures }))
+            .addMesh("contoures", new THREE.SphereBufferGeometry(1, 64, 32), new THREE.MeshBasicMaterial({ map: countryAreas }))
             .addPerspectiveCamera("camera", 75, 2, 0.1, 5)
             .placeCamera("camera", { z: 2.5 })
             .build();
@@ -107,10 +121,10 @@ class WorldComponent extends Component {
         this.controls = new OrbitContols(this.cameraReciever.recieveFirst(), this.canvas);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
-        this.controls.rotateSpeed = 0.01;
+        this.controls.rotateSpeed = 0.1;
         this.controls.enablePan = false;
-        this.controls.minDistance = 1.1;
-        this.controls.maxDistance = 2;
+        this.controls.minDistance = 1.2;
+        this.controls.maxDistance = 4;
         this.controls.update();
 
         var htmlElementCreator = new ElementCreator(document);
@@ -127,6 +141,47 @@ class WorldComponent extends Component {
         this.requestRenderIfNotRequested();
 
         this.controls.addEventListener('change', () => { this.requestRenderIfNotRequested() });
+        this.canvas.addEventListener('mouseup', this.pickCountry.bind(this));
+
+        this.canvas.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            this.lastTouch = event.touches[0];
+          }, {passive: false});
+          this.canvas.addEventListener('touchsmove', (event) => {
+            this.lastTouch = event.touches[0];
+          });
+          this.canvas.addEventListener('touchend', () => {
+            this.pickCountry(this.lastTouch);
+          });
+    }   
+
+    pickCountry(event) {
+        if (!this.countries) {
+            return;
+        }
+
+        const position = { x: event.clientX, y: event.clientY };
+        const id = this.pickHelper.pick(position, this.sceneReciever.recieve("pickingScene"), this.cameraReciever.recieveFirst());        
+        debugger;
+        if (id > 0) {
+            const countryInfo = this.countries[id - 1];
+            const selected = !countryInfo.selected;
+            if (selected && !event.shiftKey && !event.ctrlKey && !event.metaKey) {
+                unselectAllCountries();
+            }
+            this.numCountriesSelected += selected ? 1 : -1;
+            countryInfo.selected = selected;
+        } else if (this.numCountriesSelected) {
+            this.unselectAllCountries();
+        }
+        this.requestRenderIfNotRequested();
+    }
+
+    unselectAllCountries() {
+        this.numCountriesSelected = 0;
+        this.countries.forEach((countryInfo) => {
+            countryInfo.selected = false;
+        });
     }
 
     requestRenderIfNotRequested() {
@@ -141,20 +196,27 @@ class WorldComponent extends Component {
             return;
         }
 
-        var mesh = this.meshReciever.recieve("contoures");
-        this.euler.setFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.001));
-        mesh.rotation.x = this.euler.x;
-        mesh.rotation.y += this.euler.y;
-        mesh.rotation.z = this.euler.z;
+        // var mesh = this.meshReciever.recieve("contoures");
+        // this.euler.setFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.001));
+        // mesh.rotation.x = this.euler.x;
+        // mesh.rotation.y += this.euler.y;
+        // mesh.rotation.z = this.euler.z;
 
         var camera = this.cameraReciever.recieveFirst();
         this.normalMatrix.getNormalMatrix(camera.matrixWorldInverse);
         camera.getWorldPosition(this.cameraPosition);
 
         for (const countryInfo of this.countries) {
-            const { position, elem } = countryInfo;
+            const {position, elem, area, selected} = countryInfo;
+            const largeEnough = area >= 300;
+            const show = selected || (this.numCountriesSelected === 0 && largeEnough);
+            if (!show) {
+              elem.style.display = 'none';
+              continue;
+            }
 
-            this.tempV.copy(position.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.001)));
+            //this.tempV.copy(position.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.001)));
+            this.tempV.copy(position);
             this.tempV.applyMatrix3(this.normalMatrix);
 
             this.cameraToPoint.copy(position);
@@ -219,6 +281,7 @@ class WorldComponent extends Component {
                     <div id="labels" />
                 </div>
                 <div>
+                    <RangeComponent min={0} max={50} step={1} value={this.state.settings.minArea} handleChange={(e) => { this.handleArea(e) }} />
                     <RangeComponent description={"maxium visible dot"} min={-1} max={1} step={0.01} value={this.state.settings.maxVisibleDot} handleChange={(e) => { this.handleVisibleDot(e) }} />
                 </div>
             </div>
@@ -226,4 +289,4 @@ class WorldComponent extends Component {
     }
 }
 
-export default WorldComponent;
+export default CountryPickerComponent;
